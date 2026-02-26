@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Creative Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;700&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:      #f5f2ed;
+  --ink:     #1a1714;
+  --muted:   #8a8279;
+  --border:  #ddd9d2;
+  --surface: #ffffff;
+  --gold:    #b8935a;
+  --gold2:   #d4aa72;
+  --danger:  #c0392b;
+  --success: #27735a;
+  --r: 3px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg); color: var(--ink);
+  min-height: 100vh; overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: .35;
+}
+
+/* ── NAV ── */
+#nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 56px; transition: all .4s ease;
+}
+#nav.scrolled {
+  background: rgba(245,242,237,.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 56px;
+}
+.nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px; font-weight: 600; letter-spacing: .04em;
+}
+.nav-logo span { color: var(--gold); }
+.nav-links { display: flex; align-items: center; gap: 36px; }
+.nav-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); background: none; border: none;
+  cursor: pointer; padding: 0; transition: color .2s;
+}
+.nav-link:hover { color: var(--ink); }
+#admin-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  background: var(--ink); color: var(--bg);
+  border: none; padding: 9px 22px; border-radius: var(--r); cursor: pointer;
+  transition: all .2s;
+}
+#admin-btn:hover { background: var(--gold); }
+#admin-btn.on { background: var(--gold); }
+@media(max-width:640px) {
+  #nav, #nav.scrolled { padding: 16px 24px; }
+  .nav-links { gap: 16px; }
+}
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh; position: relative;
+  display: flex; flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 56px 80px; overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 78% 28%, rgba(184,147,90,.13) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 50% at 15% 75%, rgba(44,36,32,.06) 0%, transparent 60%);
+}
+.hero-num {
+  position: absolute; top: 50%; right: 56px; transform: translateY(-50%);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(160px, 22vw, 320px);
+  font-weight: 300; color: rgba(184,147,90,.07);
+  line-height: 1; user-select: none; letter-spacing: -.05em;
+}
+.hero-inner { position: relative; z-index: 1; max-width: 780px; }
+.hero-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 24px;
+  display: flex; align-items: center; gap: 14px;
+  animation: fadeUp .9s ease .1s both;
+}
+.hero-eyebrow::before { content:''; width: 28px; height: 1px; background: var(--gold); }
+.hero-h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(52px, 7.5vw, 106px);
+  font-weight: 300; line-height: 1.03; letter-spacing: -.02em;
+  margin-bottom: 32px; animation: fadeUp .9s ease .2s both;
+}
+.hero-h1 em { font-style: italic; color: var(--gold); }
+.hero-desc {
+  font-size: 15px; color: var(--muted); line-height: 1.8;
+  max-width: 400px; margin-bottom: 48px;
+  animation: fadeUp .9s ease .3s both;
+}
+.hero-actions { display: flex; gap: 14px; animation: fadeUp .9s ease .4s both; }
+.btn-primary {
+  background: var(--ink); color: var(--bg); border: none;
+  padding: 15px 38px; font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  border-radius: var(--r); cursor: pointer; transition: all .25s;
+}
+.btn-primary:hover { background: var(--gold); transform: translateY(-2px); }
+.btn-outline {
+  background: none; color: var(--ink);
+  border: 1.5px solid var(--border); padding: 14px 30px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  border-radius: var(--r); cursor: pointer; transition: all .25s;
+}
+.btn-outline:hover { border-color: var(--ink); }
+.hero-scroll {
+  position: absolute; bottom: 40px; right: 56px; z-index: 1;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); display: flex; align-items: center; gap: 10px;
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  animation: fadeUp .9s ease .6s both;
+}
+.hero-scroll::before { content:''; width: 1px; height: 48px; background: linear-gradient(to bottom, transparent, var(--muted)); }
+@media(max-width:640px) { #hero { padding: 0 24px 64px; } .hero-scroll { display:none; } }
+
+/* ── GALLERY SECTION ── */
+#gallery { padding: 80px 56px 120px; position: relative; z-index: 1; }
+@media(max-width:640px) { #gallery { padding: 60px 24px 80px; } }
+.section-top {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  border-bottom: 1.5px solid var(--ink); padding-bottom: 20px; margin-bottom: 48px;
+}
+.section-title { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 400; letter-spacing: -.01em; }
+.section-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: .1em; }
+.filters {
+  display: flex; margin-bottom: 48px;
+  border: 1.5px solid var(--border); border-radius: var(--r);
+  overflow: hidden; width: fit-content;
+}
+.filter-btn {
+  background: none; border: none; border-right: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); padding: 10px 22px; cursor: pointer; transition: all .2s;
+}
+.filter-btn:last-child { border-right: none; }
+.filter-btn.active { background: var(--ink); color: var(--bg); }
+.filter-btn:not(.active):hover { color: var(--ink); background: rgba(0,0,0,.04); }
+
+/* masonry */
+.gallery-grid { columns: 3; column-gap: 14px; }
+@media(max-width:1024px) { .gallery-grid { columns: 2; } }
+@media(max-width:560px)  { .gallery-grid { columns: 1; } }
+.gcard {
+  break-inside: avoid; margin-bottom: 14px;
+  position: relative; overflow: hidden; border-radius: var(--r);
+  background: var(--surface); border: 1px solid var(--border);
+  cursor: pointer;
+  transition: transform .4s cubic-bezier(.23,1,.32,1), box-shadow .4s, border-color .3s;
+  animation: fadeUp .5s ease both;
+}
+.gcard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 24px 64px rgba(26,23,20,.12);
+  border-color: var(--gold2);
+}
+.gcard img, .gcard video { width: 100%; display: block; object-fit: cover; }
+.gcard-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(26,23,20,.82) 0%, rgba(26,23,20,.1) 55%, transparent 100%);
+  opacity: 0; transition: opacity .35s;
+  display: flex; flex-direction: column; justify-content: flex-end; padding: 22px;
+}
+.gcard:hover .gcard-overlay { opacity: 1; }
+.gcard-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #fff; font-weight: 400; margin-bottom: 4px; }
+.gcard-cat { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold2); }
+.vid-badge {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(26,23,20,.75); backdrop-filter: blur(6px);
+  border: 1px solid rgba(184,147,90,.4); color: var(--gold2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .14em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 20px;
+}
+.g-loader {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 80px 0; color: var(--muted);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: .06em;
+}
+.spinner { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--gold); animation: spin 1s linear infinite; margin-bottom: 16px; }
+.g-empty { text-align: center; padding: 64px 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: .06em; color: var(--muted); display: none; }
+.g-error { text-align: center; padding: 64px 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: .06em; color: var(--danger); display: none; }
+
+/* ── LIGHTBOX ── */
+#lightbox { display: none; position: fixed; inset: 0; z-index: 500; background: rgba(20,17,14,.97); align-items: center; justify-content: center; padding: 40px; }
+#lightbox.open { display: flex; animation: fadeIn .25s ease; }
+#lb-close { position: fixed; top: 24px; right: 32px; font-size: 28px; background: none; border: none; color: rgba(255,255,255,.4); cursor: pointer; z-index: 510; transition: color .2s; }
+#lb-close:hover { color: #fff; }
+#lb-prev, #lb-next { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); color: rgba(255,255,255,.5); width: 48px; height: 48px; border-radius: 50%; font-size: 20px; cursor: pointer; transition: all .2s; z-index: 510; }
+#lb-prev { left: 24px; } #lb-next { right: 24px; }
+#lb-prev:hover, #lb-next:hover { background: rgba(255,255,255,.14); color: #fff; }
+#lb-wrap { display: flex; flex-direction: column; align-items: center; max-width: 92vw; }
+#lb-media img, #lb-media video { max-width: 86vw; max-height: 74vh; object-fit: contain; border-radius: var(--r); box-shadow: 0 40px 100px rgba(0,0,0,.7); }
+#lb-info { margin-top: 24px; text-align: center; }
+#lb-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: #fff; font-weight: 300; margin-bottom: 6px; }
+#lb-desc { font-size: 13px; color: rgba(255,255,255,.45); max-width: 460px; line-height: 1.6; }
+#lb-cat { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold2); margin-top: 8px; }
+.lb-counter { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,.3); letter-spacing: .08em; }
+
+/* ── LOGIN MODAL ── */
+#login-modal { display: none; position: fixed; inset: 0; z-index: 600; background: rgba(20,17,14,.75); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 24px; }
+#login-modal.open { display: flex; animation: fadeIn .2s ease; }
+.modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 52px 48px; width: 100%; max-width: 420px; position: relative; }
+.modal-x { position: absolute; top: 18px; right: 22px; background: none; border: none; font-size: 22px; color: var(--muted); cursor: pointer; transition: color .2s; }
+.modal-x:hover { color: var(--ink); }
+.modal-card h2 { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 400; margin-bottom: 6px; }
+.modal-card p { font-size: 13px; color: var(--muted); margin-bottom: 36px; line-height: 1.5; }
+.f-label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.f-inp { width: 100%; background: var(--bg); border: 1.5px solid var(--border); color: var(--ink); padding: 12px 16px; border-radius: var(--r); font-size: 14px; outline: none; transition: border-color .2s; margin-bottom: 20px; font-family: inherit; }
+.f-inp:focus { border-color: var(--gold); }
+.btn-login { width: 100%; background: var(--ink); color: var(--bg); border: none; padding: 14px; border-radius: var(--r); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: background .2s; }
+.btn-login:hover { background: var(--gold); }
+.btn-login:disabled { opacity: .45; cursor: not-allowed; }
+#login-err { color: var(--danger); font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-top: 14px; text-align: center; display: none; letter-spacing: .04em; }
+
+/* ── ADMIN PANEL ── */
+#admin-view { padding: 120px 56px 80px; min-height: 100vh; }
+@media(max-width:640px) { #admin-view { padding: 100px 24px 60px; } }
+.admin-hd { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1.5px solid var(--ink); padding-bottom: 22px; margin-bottom: 48px; }
+.admin-hd h1 { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 400; }
+.admin-hd p { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 4px; }
+.admin-hd-btns { display: flex; gap: 10px; }
+.btn-sm { background: none; border: 1.5px solid var(--border); color: var(--muted); padding: 9px 20px; border-radius: var(--r); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: all .2s; }
+.btn-sm:hover { border-color: var(--ink); color: var(--ink); }
+.btn-sm.red { border-color: rgba(192,57,43,.35); color: var(--danger); }
+.btn-sm.red:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+.a-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
+.a-tab { background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--muted); padding: 12px 28px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: all .2s; }
+.a-tab.active { color: var(--gold); border-color: var(--gold); }
+.a-tab:hover:not(.active) { color: var(--ink); }
+.a-tab-content { display: none; }
+.a-tab-content.active { display: block; }
+
+/* drop zone */
+.drop-zone { border: 2px dashed var(--border); border-radius: 6px; padding: 64px 40px; text-align: center; position: relative; cursor: pointer; transition: all .3s; margin-bottom: 28px; background: var(--surface); }
+.drop-zone:hover, .drop-zone.over { border-color: var(--gold); background: rgba(184,147,90,.03); }
+.drop-zone input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.dz-icon { width: 56px; height: 56px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; }
+.dz-title { font-size: 15px; color: var(--ink); margin-bottom: 6px; }
+.dz-title span { color: var(--gold); text-decoration: underline; }
+.dz-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: .04em; }
+
+/* chips */
+#chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.chip { background: var(--bg); border: 1px solid var(--border); padding: 6px 14px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--gold); letter-spacing: .06em; display: flex; align-items: center; gap: 8px; }
+.chip-rm { background: none; border: none; color: var(--muted); font-size: 15px; cursor: pointer; padding: 0; transition: color .2s; line-height: 1; }
+.chip-rm:hover { color: var(--danger); }
+
+/* upload form */
+.up-form { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 36px; margin-bottom: 28px; display: none; }
+.up-form h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 400; margin-bottom: 28px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width:640px) { .form-grid { grid-template-columns: 1fr; } }
+.fg { margin-bottom: 20px; }
+.fg label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.fg input, .fg select, .fg textarea { width: 100%; background: var(--bg); border: 1.5px solid var(--border); color: var(--ink); padding: 12px 16px; border-radius: var(--r); font-size: 14px; font-family: inherit; outline: none; transition: border-color .2s; }
+.fg input:focus, .fg select:focus, .fg textarea:focus { border-color: var(--gold); }
+.fg select option { background: #fff; }
+.prog-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); padding: 16px 20px; margin-bottom: 20px; display: none; }
+.prog-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gold); letter-spacing: .06em; margin-bottom: 10px; }
+.prog-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--gold); width: 0; transition: width .4s ease; border-radius: 2px; }
+.up-actions { display: flex; gap: 12px; }
+.btn-upload { flex: 1; background: var(--ink); color: var(--bg); border: none; padding: 14px; border-radius: var(--r); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: background .2s; }
+.btn-upload:hover { background: var(--gold); }
+.btn-upload:disabled { opacity: .45; cursor: not-allowed; }
+.btn-cancel { background: none; border: 1.5px solid var(--border); color: var(--muted); padding: 14px 28px; border-radius: var(--r); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: all .2s; }
+.btn-cancel:hover { border-color: var(--ink); color: var(--ink); }
+
+/* manage grid */
+.manage-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+.mf-bar { display: flex; border: 1.5px solid var(--border); border-radius: var(--r); overflow: hidden; width: fit-content; }
+.mf-btn { background: none; border: none; border-right: 1px solid var(--border); color: var(--muted); padding: 8px 18px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: all .2s; }
+.mf-btn:last-child { border-right: none; }
+.mf-btn.active { background: var(--ink); color: var(--bg); }
+.mf-btn:not(.active):hover { background: rgba(0,0,0,.04); color: var(--ink); }
+.btn-refresh { background: none; border: 1.5px solid var(--border); color: var(--muted); padding: 8px 18px; border-radius: var(--r); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: all .2s; }
+.btn-refresh:hover { border-color: var(--ink); color: var(--ink); }
+.admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.acard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; transition: border-color .2s; }
+.acard:hover { border-color: #ccc; }
+.acard-thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--bg); }
+.acard-body { padding: 14px; }
+.acard-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+.acard-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; }
+.cat-pill { display: inline-block; background: rgba(184,147,90,.12); color: var(--gold); padding: 2px 8px; border-radius: 10px; font-size: 9px; letter-spacing: .1em; }
+.acard-acts { display: flex; gap: 6px; }
+.acard-btn { flex: 1; background: none; border: 1px solid var(--border); color: var(--muted); padding: 7px 4px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: all .2s; }
+.acard-btn.del:hover { border-color: var(--danger); color: var(--danger); }
+.a-empty { text-align: center; padding: 64px 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+
+/* ── ABOUT ── */
+#about { padding: 100px 56px; border-top: 1.5px solid var(--ink); display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+@media(max-width:900px) { #about { grid-template-columns: 1fr; gap: 48px; padding: 60px 24px; } }
+.about-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+.about-h { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 400; line-height: 1.2; margin-bottom: 24px; }
+.about-p { font-size: 15px; color: var(--muted); line-height: 1.8; }
+.services { display: flex; flex-direction: column; gap: 8px; }
+.svc { display: flex; align-items: flex-start; gap: 18px; padding: 20px 22px; border: 1px solid var(--border); border-radius: var(--r); transition: border-color .2s; }
+.svc:hover { border-color: var(--gold2); }
+.svc-icon { font-size: 20px; margin-top: 2px; }
+.svc-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.svc-desc { font-size: 13px; color: var(--muted); }
+footer { border-top: 1px solid var(--border); padding: 36px 56px; display: flex; justify-content: space-between; align-items: center; }
+@media(max-width:600px) { footer { flex-direction: column; gap: 14px; padding: 32px 24px; text-align: center; } }
+.footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; }
+.footer-logo span { color: var(--gold); }
+.footer-copy { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: .06em; }
+
+/* ── TOAST ── */
+#toast { position: fixed; bottom: 30px; right: 30px; z-index: 9999; background: var(--ink); color: var(--bg); padding: 14px 24px; border-radius: var(--r); font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: .04em; opacity: 0; transform: translateY(60px); transition: all .35s ease; max-width: 360px; pointer-events: none; }
+#toast.show { opacity: 1; transform: translateY(0); }
+#toast.s { background: #1a3d2b; border-left: 3px solid var(--success); }
+#toast.e { background: #3d1a1a; border-left: 3px solid var(--danger); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-logo">Studio<span>.</span></div>
+  <div class="nav-links">
+    <button class="nav-link" onclick="goTo('gallery')">Work</button>
+    <button class="nav-link" onclick="goTo('about')">About</button>
+    <button id="admin-btn" onclick="handleAdminClick()">Admin</button>
+  </div>
+</nav>
+
+<!-- ══════════ PUBLIC VIEW ══════════ -->
+<div id="public-view" class="view active">
+
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-num" id="hero-num">0</div>
+    <div class="hero-inner">
+      <div class="hero-eyebrow">Graphic Design Portfolio</div>
+      <h1 class="hero-h1">Visual stories<br/>crafted with <em>intent</em></h1>
+      <p class="hero-desc">A curated collection of graphic design, illustrations, and motion work — each piece built around a clear concept and careful execution.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="goTo('gallery')">View Work</button>
+        <button class="btn-outline" onclick="goTo('about')">About Me</button>
+      </div>
+    </div>
+    <div class="hero-scroll">Scroll to explore</div>
+  </section>
+
+  <section id="gallery">
+    <div class="section-top">
+      <h2 class="section-title">Selected Work</h2>
+      <span class="section-count" id="g-count"></span>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterPub('all',this)">All</button>
+      <button class="filter-btn" onclick="filterPub('image',this)">Images</button>
+      <button class="filter-btn" onclick="filterPub('video',this)">Video</button>
+      <button class="filter-btn" onclick="filterPub('drawing',this)">Drawings</button>
+    </div>
+    <div class="g-loader" id="g-loader"><div class="spinner"></div>Loading portfolio…</div>
+    <div class="gallery-grid" id="pub-grid"></div>
+    <div class="g-empty" id="g-empty">Nothing here yet in this category.</div>
+    <div class="g-error" id="g-error">
+      Could not load portfolio — check your Supabase credentials in the code.<br/>
+      <button onclick="loadPublic()" style="margin-top:14px;" class="btn-sm">Retry</button>
+    </div>
+  </section>
+
+  <section id="about">
+    <div>
+      <div class="about-label">About</div>
+      <h2 class="about-h">Crafting visual identities that speak</h2>
+      <p class="about-p">A graphic designer passionate about meaningful visual communication. Every piece in this portfolio represents a commitment to craft, concept, and careful attention to detail. Available for freelance projects worldwide.</p>
+    </div>
+    <div class="services">
+      <div class="svc"><div class="svc-icon">🎨</div><div><div class="svc-name">Graphic Design</div><div class="svc-desc">Brand identity, print &amp; digital design</div></div></div>
+      <div class="svc"><div class="svc-icon">✏️</div><div><div class="svc-name">Illustration &amp; Drawing</div><div class="svc-desc">Digital and hand-crafted illustrations</div></div></div>
+      <div class="svc"><div class="svc-icon">🎬</div><div><div class="svc-name">Motion &amp; Video</div><div class="svc-desc">Animation, short-form video content</div></div></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-logo">Studio<span>.</span></div>
+    <div class="footer-copy">© 2025 All Rights Reserved</div>
+  </footer>
+</div>
+
+<!-- ══════════ ADMIN VIEW ══════════ -->
+<div id="admin-view" class="view">
+  <div class="admin-hd">
+    <div>
+      <h1>Admin Panel</h1>
+      <p id="admin-email">—</p>
+    </div>
+    <div class="admin-hd-btns">
+      <button class="btn-sm" onclick="showPublic()">← View Site</button>
+      <button class="btn-sm red" onclick="signOut()">Sign Out</button>
+    </div>
+  </div>
+  <div class="a-tabs">
+    <button class="a-tab active" onclick="switchTab('upload',this)">Upload</button>
+    <button class="a-tab" onclick="switchTab('manage',this)">Manage</button>
+  </div>
+
+  <!-- UPLOAD TAB -->
+  <div id="tab-upload" class="a-tab-content active">
+    <div style="max-width:720px;">
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" multiple accept="image/*,video/*" onchange="onFiles(this.files)" />
+        <div class="dz-icon">↑</div>
+        <div class="dz-title">Drop files here or <span>browse</span></div>
+        <div class="dz-sub">JPG · PNG · GIF · WebP · MP4 · MOV · WebM</div>
+      </div>
+      <div id="chip-list"></div>
+      <div class="up-form" id="up-form">
+        <h3>Upload Details</h3>
+        <div class="form-grid">
+          <div class="fg"><label>Title *</label><input type="text" id="up-title" placeholder="e.g. Brand Identity 2025" /></div>
+          <div class="fg"><label>Category *</label><select id="up-cat"><option value="image">Image</option><option value="video">Video</option><option value="drawing">Drawing</option></select></div>
+        </div>
+        <div class="fg"><label>Description (optional)</label><textarea id="up-desc" rows="2" placeholder="Brief description of the piece"></textarea></div>
+        <div class="prog-box" id="prog-box">
+          <div class="prog-label" id="prog-label">Uploading…</div>
+          <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+        </div>
+        <div class="up-actions">
+          <button class="btn-upload" id="btn-upload" onclick="doUpload()">Upload to Portfolio</button>
+          <button class="btn-cancel" onclick="cancelUpload()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MANAGE TAB -->
+  <div id="tab-manage" class="a-tab-content">
+    <div class="manage-bar">
+      <div class="mf-bar">
+        <button class="mf-btn active" onclick="filterManage('all',this)">All</button>
+        <button class="mf-btn" onclick="filterManage('image',this)">Images</button>
+        <button class="mf-btn" onclick="filterManage('video',this)">Videos</button>
+        <button class="mf-btn" onclick="filterManage('drawing',this)">Drawings</button>
+      </div>
+      <button class="btn-refresh" onclick="loadManage()">↺ Refresh</button>
+    </div>
+    <div id="a-spinner" style="text-align:center;padding:48px;display:none;"><div class="spinner" style="margin:0 auto;"></div></div>
+    <div class="admin-grid" id="admin-grid"></div>
+    <div class="a-empty" id="a-empty" style="display:none;">No items yet. Switch to Upload to add your first piece.</div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div id="login-modal">
+  <div class="modal-card">
+    <button class="modal-x" onclick="closeLogin()">×</button>
+    <h2>Admin Login</h2>
+    <p>Sign in to upload and manage your portfolio content.</p>
+    <label class="f-label">Email</label>
+    <input class="f-inp" id="l-email" type="email" placeholder="you@email.com" />
+    <label class="f-label">Password</label>
+    <input class="f-inp" id="l-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
+    <button class="btn-login" id="btn-login" onclick="doLogin()">Sign In</button>
+    <p id="login-err"></p>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <button id="lb-close" onclick="closeLb()">×</button>
+  <button id="lb-prev" onclick="lbNav(-1)">‹</button>
+  <button id="lb-next" onclick="lbNav(1)">›</button>
+  <div id="lb-wrap">
+    <div id="lb-media"></div>
+    <div id="lb-info">
+      <div id="lb-title"></div>
+      <div id="lb-desc"></div>
+      <div id="lb-cat"></div>
+    </div>
+  </div>
+  <div class="lb-counter" id="lb-counter"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"><span id="toast-msg"></span></div>
+
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   ██  SUPABASE CONFIG  ██
+   Replace the three values below with your actual credentials.
+   Everything else works automatically — no other changes needed.
+══════════════════════════════════════════════════════════════ */
+
+const SUPABASE_URL  = 'https://jxekcsjzowwvgixxgggg.supabase.co';
+// ↑ Example: 'https://abcdefghij.supabase.co'
+
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4ZWtjc2p6b3d3dmdpeHhnZ2dnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwODMwMzUsImV4cCI6MjA4NzY1OTAzNX0.v8WxycGKU5wCjjIBqUfsJ7ywCS6EDhKVnYAWIfRcDD0';
+// ↑ Example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+
+const BUCKET = 'portfolio';
+// ↑ Your storage bucket name (must be Public in Supabase)
+
+/* ── DB table name — change only if you named your table differently ── */
+const TABLE = 'portfolio_items';
+
+/* ══════════════════════════════════════════════════════════════
+   DO NOT EDIT BELOW THIS LINE
+══════════════════════════════════════════════════════════════ */
+
+/* ─── Create Supabase client ─── */
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+/* ─── State ─── */
+let currentUser = null;
+let pubItems    = [];
+let filteredPub = [];
+let manageAll   = [];
+let lbIndex     = 0;
+let selFiles    = [];
+
+/* ─── App boot ─── */
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* Scroll → sticky nav */
+  window.addEventListener('scroll', () =>
+    document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 30)
+  );
+
+  /* Drag-and-drop on the upload zone */
+  const dz = document.getElementById('drop-zone');
+  dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('over');
+    onFiles(e.dataTransfer.files);
+  });
+
+  /* Keyboard shortcuts inside lightbox */
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
+    if (e.key === 'Escape')      closeLb();
+    if (e.key === 'ArrowLeft')   lbNav(-1);
+    if (e.key === 'ArrowRight')  lbNav(1);
+  });
+
+  /* Click backdrop to close lightbox */
+  document.getElementById('lightbox').addEventListener('click', e => {
+    if (e.target === document.getElementById('lightbox')) closeLb();
+  });
+
+  /* Listen for auth changes */
+  sb.auth.onAuthStateChange((_event, session) => {
+    session?.user ? onLogin(session.user) : onLogout();
+  });
+
+  /* Restore existing session on page load */
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session?.user) onLogin(session.user);
+  });
+
+  /* Load the public gallery immediately */
+  loadPublic();
+});
+
+/* ════════════════════════════════════════
+   AUTH
+════════════════════════════════════════ */
+function onLogin(user) {
+  currentUser = user;
+  const btn = document.getElementById('admin-btn');
+  btn.textContent = 'Admin ✓';
+  btn.classList.add('on');
+  document.getElementById('admin-email').textContent = user.email;
+}
+function onLogout() {
+  currentUser = null;
+  const btn = document.getElementById('admin-btn');
+  btn.textContent = 'Admin';
+  btn.classList.remove('on');
+  if (document.getElementById('admin-view').classList.contains('active')) showPublic();
+}
+
+function handleAdminClick() {
+  currentUser ? showAdmin() : openLogin();
+}
+function openLogin() {
+  document.getElementById('login-modal').classList.add('open');
+  setTimeout(() => document.getElementById('l-email').focus(), 80);
+}
+function closeLogin() {
+  document.getElementById('login-modal').classList.remove('open');
+  document.getElementById('login-err').textContent = '';
+  document.getElementById('l-email').value = '';
+  document.getElementById('l-pass').value = '';
+}
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  const errEl = document.getElementById('login-err');
+  const btn   = document.getElementById('btn-login');
+
+  if (!email || !pass) {
+    errEl.textContent = 'Email and password are required.';
+    errEl.style.display = 'block'; return;
+  }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  errEl.style.display = 'none';
+
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+  btn.disabled = false; btn.textContent = 'Sign In';
+  if (error) {
+    errEl.textContent = '✗ ' + error.message;
+    errEl.style.display = 'block';
+  } else {
+    closeLogin();
+    toast('Welcome back!', 's');
+    showAdmin();
+  }
+}
+async function signOut() {
+  await sb.auth.signOut();
+  toast('Signed out.', 's');
+  showPublic();
+}
+
+/* ════════════════════════════════════════
+   VIEW SWITCHING
+════════════════════════════════════════ */
+function showPublic() {
+  document.getElementById('public-view').classList.add('active');
+  document.getElementById('admin-view').classList.remove('active');
+  window.scrollTo(0, 0);
+}
+function showAdmin() {
+  if (!currentUser) { openLogin(); return; }
+  document.getElementById('admin-view').classList.add('active');
+  document.getElementById('public-view').classList.remove('active');
+  window.scrollTo(0, 0);
+  loadManage();
+}
+function goTo(id) {
+  if (!document.getElementById('public-view').classList.contains('active')) showPublic();
+  setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 60);
+}
+
+/* ════════════════════════════════════════
+   PUBLIC GALLERY
+════════════════════════════════════════ */
+async function loadPublic() {
+  gState('loading');
+
+  const { data, error } = await sb
+    .from(TABLE)
+    .select('id, title, description, category, file_url, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('[Supabase] load error:', error);
+    gState('error'); return;
+  }
+
+  pubItems    = data || [];
+  filteredPub = [...pubItems];
+
+  document.getElementById('hero-num').textContent = pubItems.length;
+  document.getElementById('g-count').textContent  =
+    `${pubItems.length} piece${pubItems.length !== 1 ? 's' : ''}`;
+
+  renderPublic(pubItems);
+}
+
+function gState(s) {
+  document.getElementById('g-loader').style.display  = s === 'loading' ? 'flex'  : 'none';
+  document.getElementById('g-empty').style.display   = s === 'empty'   ? 'block' : 'none';
+  document.getElementById('g-error').style.display   = s === 'error'   ? 'block' : 'none';
+  document.getElementById('pub-grid').style.display  = s === 'grid'    ? ''      : 'none';
+}
+
+function filterPub(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filteredPub = type === 'all' ? pubItems : pubItems.filter(i => i.category === type);
+  renderPublic(filteredPub);
+}
+
+function renderPublic(items) {
+  const grid = document.getElementById('pub-grid');
+  grid.innerHTML = '';
+  if (!items.length) { gState('empty'); return; }
+  gState('grid');
+
+  items.forEach((item, i) => {
+    const isVid = item.category === 'video';
+    const c = document.createElement('div');
+    c.className = 'gcard';
+    c.style.animationDelay = `${i * 0.04}s`;
+    c.onclick = () => openLb(i);
+    c.innerHTML = `
+      ${isVid
+        ? `<video src="${esc(item.file_url)}" muted preload="metadata" style="width:100%;aspect-ratio:4/3;object-fit:cover;"></video>
+           <div class="vid-badge">▶ Video</div>`
+        : `<img src="${esc(item.file_url)}" alt="${esc(item.title||'')}" loading="lazy" />`
+      }
+      <div class="gcard-overlay">
+        <div class="gcard-title">${esc(item.title||'Untitled')}</div>
+        <div class="gcard-cat">${esc(item.category)}</div>
+      </div>`;
+    grid.appendChild(c);
+  });
+}
+
+/* ════════════════════════════════════════
+   LIGHTBOX
+════════════════════════════════════════ */
+function openLb(idx) {
+  lbIndex = idx; renderLb();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLb() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lb-media').innerHTML = '';
+  document.body.style.overflow = '';
+}
+function lbNav(d) {
+  lbIndex = (lbIndex + d + filteredPub.length) % filteredPub.length;
+  renderLb();
+}
+function renderLb() {
+  const item = filteredPub[lbIndex];
+  if (!item) return;
+  document.getElementById('lb-media').innerHTML = item.category === 'video'
+    ? `<video src="${esc(item.file_url)}" controls autoplay style="max-width:86vw;max-height:74vh;border-radius:3px;"></video>`
+    : `<img src="${esc(item.file_url)}" alt="${esc(item.title||'')}" style="max-width:86vw;max-height:74vh;object-fit:contain;border-radius:3px;" />`;
+  document.getElementById('lb-title').textContent   = item.title || 'Untitled';
+  document.getElementById('lb-desc').textContent    = item.description || '';
+  document.getElementById('lb-cat').textContent     = item.category;
+  document.getElementById('lb-counter').textContent = `${lbIndex+1} / ${filteredPub.length}`;
+  const multi = filteredPub.length > 1;
+  document.getElementById('lb-prev').style.display = multi ? '' : 'none';
+  document.getElementById('lb-next').style.display = multi ? '' : 'none';
+}
+
+/* ════════════════════════════════════════
+   ADMIN TABS
+════════════════════════════════════════ */
+function switchTab(name, btn) {
+  document.querySelectorAll('.a-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.a-tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'manage') loadManage();
+}
+
+/* ════════════════════════════════════════
+   UPLOAD
+════════════════════════════════════════ */
+function onFiles(fileList) {
+  selFiles = Array.from(fileList);
+  if (!selFiles.length) return;
+
+  const list = document.getElementById('chip-list');
+  list.innerHTML = '';
+  selFiles.forEach((f, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = `${f.name}<button class="chip-rm" onclick="removeFile(${i})" title="Remove">×</button>`;
+    list.appendChild(chip);
+  });
+
+  /* Auto-detect category */
+  document.getElementById('up-cat').value =
+    selFiles[0].type.startsWith('video/') ? 'video' : 'image';
+
+  document.getElementById('up-form').style.display = 'block';
+}
+
+function removeFile(idx) {
+  selFiles.splice(idx, 1);
+  selFiles.length ? onFiles(selFiles) : cancelUpload();
+}
+
+function cancelUpload() {
+  selFiles = [];
+  document.getElementById('file-input').value    = '';
+  document.getElementById('chip-list').innerHTML = '';
+  document.getElementById('up-form').style.display  = 'none';
+  document.getElementById('prog-box').style.display = 'none';
+  document.getElementById('prog-fill').style.width  = '0%';
+  document.getElementById('up-title').value = '';
+  document.getElementById('up-desc').value  = '';
+}
+
+async function doUpload() {
+  if (!currentUser)     return toast('You must be logged in.', 'e');
+  if (!selFiles.length) return toast('No files selected.', 'e');
+
+  const title = document.getElementById('up-title').value.trim();
+  const cat   = document.getElementById('up-cat').value;
+  const desc  = document.getElementById('up-desc').value.trim();
+  if (!title) { document.getElementById('up-title').focus(); return toast('Please enter a title.', 'e'); }
+
+  const btn  = document.getElementById('btn-upload');
+  const pBox = document.getElementById('prog-box');
+  const pFil = document.getElementById('prog-fill');
+  const pLbl = document.getElementById('prog-label');
+
+  btn.disabled = true;
+  pBox.style.display = 'block';
+
+  let ok = 0;
+  const total = selFiles.length;
+
+  for (let i = 0; i < total; i++) {
+    const file = selFiles[i];
+    pLbl.textContent = `Uploading ${i+1} of ${total}: ${file.name}`;
+    pFil.style.width = `${Math.round((i / total) * 80)}%`;
+
+    /* 1 — Upload file to Storage */
+    const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${Date.now()}_${Math.random().toString(36).slice(2)}_${safe}`;
+
+    const { error: storErr } = await sb.storage
+      .from(BUCKET)
+      .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
+
+    if (storErr) {
+      console.error('[Storage] Upload error:', storErr);
+      toast(`Upload failed — ${file.name}: ${storErr.message}`, 'e');
+      continue;
+    }
+
+    /* 2 — Get public URL */
+    const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(path);
+    const publicUrl = urlData?.publicUrl;
+    if (!publicUrl) { toast(`Could not get URL for ${file.name}`, 'e'); continue; }
+
+    /* 3 — Insert DB row */
+    const { error: dbErr } = await sb.from(TABLE).insert({
+      title,
+      category:    cat,
+      description: desc || null,
+      file_url:    publicUrl,
+      file_path:   path,
+      file_type:   file.type,
+      file_size:   file.size,
+    });
+
+    if (dbErr) {
+      console.error('[DB] Insert error:', dbErr);
+      await sb.storage.from(BUCKET).remove([path]); /* rollback orphan file */
+      toast(`DB error — ${file.name}: ${dbErr.message}`, 'e');
+      continue;
+    }
+
+    ok++;
+  }
+
+  pFil.style.width  = '100%';
+  pLbl.textContent  = `Done — ${ok} of ${total} file(s) uploaded.`;
+
+  setTimeout(() => {
+    btn.disabled = false;
+    cancelUpload();
+    if (ok > 0) {
+      toast(`${ok} file${ok > 1 ? 's' : ''} uploaded!`, 's');
+      loadManage();
+      loadPublic();
+    }
+  }, 1200);
+}
+
+/* ════════════════════════════════════════
+   MANAGE GRID
+════════════════════════════════════════ */
+async function loadManage() {
+  const spinner = document.getElementById('a-spinner');
+  const grid    = document.getElementById('admin-grid');
+  const empty   = document.getElementById('a-empty');
+
+  spinner.style.display = 'block';
+  grid.innerHTML = '';
+  empty.style.display = 'none';
+
+  const { data, error } = await sb
+    .from(TABLE)
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  spinner.style.display = 'none';
+  if (error) { console.error('[DB] Manage load:', error); toast('Error loading items: ' + error.message, 'e'); return; }
+
+  manageAll = data || [];
+  renderManage(manageAll);
+}
+
+function filterManage(type, btn) {
+  document.querySelectorAll('.mf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderManage(type === 'all' ? manageAll : manageAll.filter(i => i.category === type));
+}
+
+function renderManage(items) {
+  const grid  = document.getElementById('admin-grid');
+  const empty = document.getElementById('a-empty');
+  grid.innerHTML = '';
+  if (!items.length) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  items.forEach(item => {
+    const isVid = item.category === 'video';
+    const c = document.createElement('div');
+    c.className = 'acard';
+    c.innerHTML = `
+      ${isVid
+        ? `<video class="acard-thumb" src="${esc(item.file_url)}" muted preload="metadata"></video>`
+        : `<img class="acard-thumb" src="${esc(item.file_url)}" alt="${esc(item.title||'')}" loading="lazy" />`
+      }
+      <div class="acard-body">
+        <div class="acard-name">${esc(item.title||'Untitled')}</div>
+        <div class="acard-meta"><span class="cat-pill">${esc(item.category)}</span></div>
+        <div class="acard-acts">
+          <button class="acard-btn del" onclick="deleteItem('${item.id}','${esc(item.file_path||'')}')">Delete</button>
+        </div>
+      </div>`;
+    grid.appendChild(c);
+  });
+}
+
+async function deleteItem(id, filePath) {
+  if (!confirm('Delete this item? This cannot be undone.')) return;
+
+  /* Remove from Storage */
+  if (filePath) {
+    const { error: sErr } = await sb.storage.from(BUCKET).remove([filePath]);
+    if (sErr) console.warn('[Storage] Delete warning:', sErr.message);
+  }
+
+  /* Remove from DB */
+  const { error: dErr } = await sb.from(TABLE).delete().eq('id', id);
+  if (dErr) {
+    console.error('[DB] Delete error:', dErr);
+    toast('Delete failed: ' + dErr.message, 'e');
+  } else {
+    toast('Item deleted.', 's');
+    loadManage();
+    loadPublic();
+  }
+}
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+let _tt;
+function toast(msg, type = 's') {
+  const el = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.className = '', 3800);
+}
+
+/* ── Escape HTML to prevent XSS ── */
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+
+<!--
+╔══════════════════════════════════════════════════════════╗
+║            SUPABASE ONE-TIME SETUP GUIDE                 ║
+╠══════════════════════════════════════════════════════════╣
+║                                                          ║
+║  STEP 1 — SQL (run in Supabase → SQL Editor)             ║
+║  ──────────────────────────────────────────              ║
+║  CREATE TABLE portfolio_items (                          ║
+║    id          UUID PRIMARY KEY                          ║
+║                DEFAULT gen_random_uuid(),                ║
+║    title       TEXT NOT NULL,                            ║
+║    category    TEXT NOT NULL                             ║
+║                CHECK (category IN                        ║
+║                ('image','video','drawing')),              ║
+║    description TEXT,                                     ║
+║    file_url    TEXT NOT NULL,                            ║
+║    file_path   TEXT,                                     ║
+║    file_type   TEXT,                                     ║
+║    file_size   BIGINT,                                   ║
+║    created_at  TIMESTAMPTZ DEFAULT now()                 ║
+║  );                                                      ║
+║  ALTER TABLE portfolio_items ENABLE ROW LEVEL SECURITY;  ║
+║  CREATE POLICY "Public read" ON portfolio_items          ║
+║    FOR SELECT USING (true);                              ║
+║  CREATE POLICY "Auth insert" ON portfolio_items          ║
+║    FOR INSERT WITH CHECK                                 ║
+║    (auth.role() = 'authenticated');                      ║
+║  CREATE POLICY "Auth delete" ON portfolio_items          ║
+║    FOR DELETE USING                                      ║
+║    (auth.role() = 'authenticated');                      ║
+║                                                          ║
+║  STEP 2 — Storage                                        ║
+║  ──────────────────────────────────────────              ║
+║  Storage → New Bucket → Name: portfolio → ✅ Public      ║
+║  Add upload policy for authenticated users               ║
+║                                                          ║
+║  STEP 3 — Admin User                                     ║
+║  ──────────────────────────────────────────              ║
+║  Authentication → Users → Add User                       ║
+║  Enter your email + password                             ║
+║                                                          ║
+║  STEP 4 — Paste credentials at top of <script>           ║
+║  ──────────────────────────────────────────              ║
+║  SUPABASE_URL  = 'https://xxx.supabase.co'               ║
+║  SUPABASE_ANON = 'eyJhbGci...'                           ║
+║  BUCKET        = 'portfolio'                             ║
+║                                                          ║
+╚══════════════════════════════════════════════════════════╝
+-->
+</body>
+</html>
